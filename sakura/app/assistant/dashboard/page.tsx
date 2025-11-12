@@ -119,24 +119,30 @@ export default function AssistantDashboardPage() {
       </aside>
 
       {/* Main Content */}
-      <main className="flex-1 overflow-y-auto p-8">
-        <div className="flex flex-col gap-8">
+      <main className="flex-1 overflow-y-auto p-4 sm:p-6 lg:p-8">
+        <div className="flex flex-col gap-6 sm:gap-8">
           {/* Header */}
           <div className="flex flex-wrap justify-between items-center gap-4">
             <div className="flex flex-col gap-1">
-              <h1 className="text-gray-900 dark:text-white text-3xl font-bold leading-tight">Welcome, Sarah!</h1>
-              <p className="text-gray-500 dark:text-gray-400 text-base font-normal leading-normal">{currentDate}</p>
+              <h1 className="text-gray-900 dark:text-white text-2xl sm:text-3xl font-bold leading-tight">
+                Welcome, Sarah!
+              </h1>
+              <p className="text-gray-500 dark:text-gray-400 text-sm sm:text-base font-normal leading-normal">
+                {currentDate}
+              </p>
             </div>
-            <button className="flex items-center justify-center gap-2 rounded-lg h-11 px-5 bg-primary text-white text-sm font-bold leading-normal shadow-sm hover:bg-primary/90 transition-colors">
-              <span className="material-symbols-outlined">add</span>
+            <button className="flex items-center justify-center gap-2 rounded-lg h-10 sm:h-11 px-4 sm:px-5 bg-primary text-white text-sm font-bold leading-normal shadow-sm hover:bg-primary/90 transition-colors w-full sm:w-auto">
+              <span className="material-symbols-outlined text-lg sm:text-xl">add</span>
               <span className="truncate">Add New Task</span>
             </button>
           </div>
 
           {/* Today's Appointments */}
           <div className="flex flex-col gap-4">
-            <h2 className="text-gray-900 dark:text-white text-xl font-bold leading-tight">Today's Appointments</h2>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            <h2 className="text-gray-900 dark:text-white text-lg sm:text-xl font-bold leading-tight">
+              Today's Appointments
+            </h2>
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
               {/* Appointment Card 1 */}
               <div className="flex items-center gap-4 bg-white dark:bg-gray-900 p-4 rounded-xl border border-gray-200 dark:border-gray-800 hover:shadow-md transition-shadow">
                 <div
@@ -200,11 +206,13 @@ export default function AssistantDashboardPage() {
           </div>
 
           {/* Charts and Tasks */}
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 sm:gap-8">
             {/* Data Visualization */}
-            <div className="lg:col-span-2 flex flex-col gap-4 bg-white dark:bg-gray-900 p-6 rounded-xl border border-gray-200 dark:border-gray-800">
-              <h3 className="text-lg font-bold text-gray-900 dark:text-white">Appointments This Week</h3>
-              <div className="w-full h-64 flex items-end gap-3 md:gap-4 lg:gap-6 px-2">
+            <div className="lg:col-span-2 flex flex-col gap-4 bg-white dark:bg-gray-900 p-4 sm:p-6 rounded-xl border border-gray-200 dark:border-gray-800">
+              <h3 className="text-base sm:text-lg font-bold text-gray-900 dark:text-white">
+                Appointments This Week
+              </h3>
+              <div className="w-full h-48 sm:h-64 flex items-end gap-2 sm:gap-3 md:gap-4 lg:gap-6 px-2 overflow-x-auto">
                 <div className="flex flex-col items-center gap-2 flex-1 h-full justify-end">
                   <div className="bg-primary/20 dark:bg-primary/30 w-full rounded-lg" style={{ height: '60%' }}></div>
                   <p className="text-xs text-gray-500 dark:text-gray-400">Mon</p>
@@ -237,8 +245,8 @@ export default function AssistantDashboardPage() {
             </div>
 
             {/* Tasks */}
-            <div className="flex flex-col gap-4 bg-white dark:bg-gray-900 p-6 rounded-xl border border-gray-200 dark:border-gray-800">
-              <h3 className="text-lg font-bold text-gray-900 dark:text-white">Tasks for Today</h3>
+            <div className="flex flex-col gap-4 bg-white dark:bg-gray-900 p-4 sm:p-6 rounded-xl border border-gray-200 dark:border-gray-800">
+              <h3 className="text-base sm:text-lg font-bold text-gray-900 dark:text-white">Tasks for Today</h3>
               <div className="flex flex-col gap-3">
                 {tasks.map((task) => (
                   <div key={task.id} className="flex items-center gap-3">

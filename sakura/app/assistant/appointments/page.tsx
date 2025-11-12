@@ -205,20 +205,24 @@ export default function AssistantAppointmentsPage() {
       </aside>
 
       {/* Main Content */}
-      <main className="flex-1 overflow-y-auto p-8 bg-background-light dark:bg-background-dark">
-        <div className="flex flex-col gap-6 max-w-7xl mx-auto">
+      <main className="flex-1 overflow-y-auto p-4 sm:p-6 lg:p-8 bg-background-light dark:bg-background-dark">
+        <div className="flex flex-col gap-4 sm:gap-6 max-w-7xl mx-auto">
           {/* Header */}
           <div className="flex flex-wrap justify-between items-center gap-4">
             <div className="flex flex-col gap-1">
-              <h1 className="text-gray-900 dark:text-white text-3xl font-bold leading-tight">Appointments</h1>
-              <p className="text-gray-500 dark:text-gray-400 text-base font-normal leading-normal">View and manage all patient appointments.</p>
+              <h1 className="text-gray-900 dark:text-white text-2xl sm:text-3xl font-bold leading-tight">
+                Appointments
+              </h1>
+              <p className="text-gray-500 dark:text-gray-400 text-sm sm:text-base font-normal leading-normal">
+                View and manage all patient appointments.
+              </p>
             </div>
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-2 w-full sm:w-auto">
               <Link
                 href="/assistant/appointments/new"
-                className="flex items-center justify-center gap-2 rounded-lg h-11 px-5 bg-primary text-white text-sm font-bold leading-normal shadow-sm hover:bg-primary/90 transition-colors"
+                className="flex items-center justify-center gap-2 rounded-lg h-10 sm:h-11 px-4 sm:px-5 bg-primary text-white text-sm font-bold leading-normal shadow-sm hover:bg-primary/90 transition-colors w-full sm:w-auto"
               >
-                <span className="material-symbols-outlined">add</span>
+                <span className="material-symbols-outlined text-lg sm:text-xl">add</span>
                 <span className="truncate">New Appointment</span>
               </Link>
             </div>

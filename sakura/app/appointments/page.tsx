@@ -154,11 +154,11 @@ export default function BookAppointmentPage() {
               </div>
 
               <div className="flex flex-wrap justify-between gap-3 p-4">
-                <div className="flex min-w-72 flex-col gap-3">
-                  <p className="text-[#111418] dark:text-white text-4xl font-black leading-tight tracking-[-0.033em]">
+                <div className="flex min-w-0 sm:min-w-72 flex-col gap-3">
+                  <p className="text-[#111418] dark:text-white text-2xl sm:text-3xl lg:text-4xl font-black leading-tight tracking-[-0.033em]">
                     Book an Appointment
                   </p>
-                  <p className="text-gray-500 dark:text-gray-400 text-base font-normal leading-normal">
+                  <p className="text-gray-500 dark:text-gray-400 text-sm sm:text-base font-normal leading-normal">
                     Fill in your details to schedule your visit in a few simple steps.
                   </p>
                 </div>
@@ -166,12 +166,12 @@ export default function BookAppointmentPage() {
             </div>
 
             {/* Section 1: Patient Information */}
-            <section className="mb-12">
-                <h2 className="text-[#111418] dark:text-white text-[22px] font-bold leading-tight tracking-[-0.015em] px-4 pb-3 pt-5">
+            <section className="mb-8 sm:mb-12">
+                <h2 className="text-[#111418] dark:text-white text-lg sm:text-xl lg:text-[22px] font-bold leading-tight tracking-[-0.015em] px-2 sm:px-4 pb-3 pt-5">
                   1. Patient Information
                 </h2>
-                <div className="bg-[#F3F4F6] dark:bg-background-dark p-6 rounded-xl border border-gray-200 dark:border-gray-800">
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                <div className="bg-[#F3F4F6] dark:bg-background-dark p-4 sm:p-6 rounded-xl border border-gray-200 dark:border-gray-800">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-4">
                     <input
                       name="patientName"
                       value={formData.patientName}

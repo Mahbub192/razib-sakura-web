@@ -216,11 +216,11 @@ export default function AssistantCommunicationsPage() {
       </div>
 
       {/* Main Content */}
-      <main className="flex-1 grid grid-cols-12 h-screen">
+      <main className="flex-1 grid grid-cols-1 lg:grid-cols-12 h-screen overflow-hidden">
         {/* Left Column: Conversation List */}
-        <div className="col-span-3 bg-white dark:bg-gray-900 border-r border-gray-200 dark:border-gray-800 flex flex-col h-full">
-          <div className="p-4 border-b border-gray-200 dark:border-gray-800">
-            <h2 className="text-xl font-bold text-gray-900 dark:text-white mb-4">Conversations</h2>
+        <div className="col-span-1 lg:col-span-3 bg-white dark:bg-gray-900 border-r border-gray-200 dark:border-gray-800 flex flex-col h-full overflow-hidden">
+          <div className="p-3 sm:p-4 border-b border-gray-200 dark:border-gray-800">
+            <h2 className="text-lg sm:text-xl font-bold text-gray-900 dark:text-white mb-3 sm:mb-4">Conversations</h2>
             {/* Search Bar */}
             <label className="flex flex-col min-w-40 h-12 w-full">
               <div className="flex w-full flex-1 items-stretch rounded-lg h-full bg-gray-100 dark:bg-gray-800">
@@ -335,7 +335,7 @@ export default function AssistantCommunicationsPage() {
         </div>
 
         {/* Center Column: Chat Interface */}
-        <div className="col-span-6 bg-gray-50 dark:bg-gray-800 flex flex-col h-full">
+        <div className="col-span-1 lg:col-span-6 bg-gray-50 dark:bg-gray-800 flex flex-col h-full hidden lg:flex">
           <div className="flex items-center p-4 border-b border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900 shrink-0">
             <div className="flex items-center gap-3">
               {currentConversation && (
@@ -448,7 +448,7 @@ export default function AssistantCommunicationsPage() {
         </div>
 
         {/* Right Column: Contextual Panel */}
-        <div className="col-span-3 bg-white dark:bg-gray-900 border-l border-gray-200 dark:border-gray-800 flex flex-col p-6 space-y-8">
+        <div className="col-span-1 lg:col-span-3 bg-white dark:bg-gray-900 border-l border-gray-200 dark:border-gray-800 flex flex-col p-4 sm:p-6 space-y-6 sm:space-y-8 hidden xl:flex">
           {/* Patient Profile Card */}
           {currentConversation && (
             <>
