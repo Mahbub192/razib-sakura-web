@@ -146,15 +146,29 @@ export default function AssistantCommunicationsPage() {
               href="/assistant/appointments"
               className="flex items-center gap-3 px-3 py-2 rounded-lg text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800"
             >
-              <span className="material-symbols-outlined text-2xl">calendar_month</span>
+              <span className="material-symbols-outlined text-2xl">list_alt</span>
               <p className="text-sm font-medium leading-normal">Appointments</p>
             </Link>
             <Link
               href="/assistant/patients"
               className="flex items-center gap-3 px-3 py-2 rounded-lg text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800"
             >
-              <span className="material-symbols-outlined text-2xl">groups</span>
+              <span className="material-symbols-outlined text-2xl">group</span>
               <p className="text-sm font-medium leading-normal">Patients</p>
+            </Link>
+            <Link
+              href="/assistant/calendar"
+              className="flex items-center gap-3 px-3 py-2 rounded-lg text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800"
+            >
+              <span className="material-symbols-outlined text-2xl">calendar_month</span>
+              <p className="text-sm font-medium leading-normal">Calendar</p>
+            </Link>
+            <Link
+              href="/assistant/reports"
+              className="flex items-center gap-3 px-3 py-2 rounded-lg text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800"
+            >
+              <span className="material-symbols-outlined text-2xl">bar_chart</span>
+              <p className="text-sm font-medium leading-normal">Reports</p>
             </Link>
             <Link
               href="/assistant/communications"
@@ -164,6 +178,13 @@ export default function AssistantCommunicationsPage() {
                 chat
               </span>
               <p className="text-sm font-medium leading-normal">Communications</p>
+            </Link>
+            <Link
+              href="/assistant/settings"
+              className="flex items-center gap-3 px-3 py-2 rounded-lg text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800"
+            >
+              <span className="material-symbols-outlined text-2xl">settings</span>
+              <p className="text-sm font-medium leading-normal">Settings</p>
             </Link>
           </div>
         </div>
