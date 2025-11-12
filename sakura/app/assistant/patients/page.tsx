@@ -137,6 +137,13 @@ export default function AssistantPatientsPage() {
               <p className="text-sm font-semibold leading-normal">Patients</p>
             </Link>
             <Link
+              href="/assistant/communications"
+              className="flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 text-gray-700 dark:text-gray-300"
+            >
+              <span className="material-symbols-outlined text-2xl">chat</span>
+              <p className="text-sm font-medium leading-normal">Communications</p>
+            </Link>
+            <Link
               href="/assistant/schedule"
               className="flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 text-gray-700 dark:text-gray-300"
             >
