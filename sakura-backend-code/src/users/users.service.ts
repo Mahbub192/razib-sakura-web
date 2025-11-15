@@ -41,10 +41,12 @@ export class UsersService {
   }
 
   async findByPhoneNumber(phoneNumber: string): Promise<User | null> {
-    return this.usersRepository.findOne({
-      where: { phoneNumber },
-      select: ['id', 'email', 'phoneNumber', 'fullName', 'role', 'password', 'avatar'],
-    })
+    // Use addSelect to explicitly include password field
+    return this.usersRepository
+      .createQueryBuilder('user')
+      .where('user.phoneNumber = :phoneNumber', { phoneNumber })
+      .addSelect('user.password') // Explicitly add password to selection
+      .getOne()
   }
 
   async findByEmailOrPhone(email: string, phoneNumber: string): Promise<User | null> {

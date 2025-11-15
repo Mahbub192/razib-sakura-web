@@ -52,32 +52,54 @@ export class AuthService {
   async login(loginDto: LoginDto) {
     const { phoneNumber, password } = loginDto
 
+    console.log(`[LOGIN] Attempting login for phone: ${phoneNumber}`)
+
     // Find user by phone number
     const user = await this.usersService.findByPhoneNumber(phoneNumber)
     if (!user) {
+      console.error(`[LOGIN] User not found with phone number: ${phoneNumber}`)
+      throw new UnauthorizedException('Invalid credentials')
+    }
+
+    console.log(`[LOGIN] User found: ${user.id}, email: ${user.email}, hasPassword: ${!!user.password}`)
+
+    // Check if password exists
+    if (!user.password) {
+      console.error(`[LOGIN] Password not found for user: ${user.id}`)
       throw new UnauthorizedException('Invalid credentials')
     }
 
     // Verify password
+    console.log(`[LOGIN] Comparing password...`)
     const isPasswordValid = await bcrypt.compare(password, user.password)
+    console.log(`[LOGIN] Password comparison result: ${isPasswordValid}`)
+    
     if (!isPasswordValid) {
+      console.error(`[LOGIN] Invalid password for user: ${user.id}`)
       throw new UnauthorizedException('Invalid credentials')
     }
 
     // Generate JWT token
-    const payload = { sub: user.id, email: user.email, role: user.role }
-    const accessToken = this.jwtService.sign(payload)
+    try {
+      const payload = { sub: user.id, email: user.email, role: user.role }
+      console.log(`[LOGIN] Generating JWT token for user: ${user.id}`)
+      const accessToken = this.jwtService.sign(payload)
+      console.log(`[LOGIN] Login successful for user: ${user.id}`)
 
-    return {
-      accessToken,
-      user: {
-        id: user.id,
-        email: user.email,
-        phoneNumber: user.phoneNumber,
-        fullName: user.fullName,
-        role: user.role,
-        avatar: user.avatar,
-      },
+      return {
+        accessToken,
+        user: {
+          id: user.id,
+          email: user.email,
+          phoneNumber: user.phoneNumber,
+          fullName: user.fullName,
+          role: user.role,
+          avatar: user.avatar,
+        },
+      }
+    } catch (error) {
+      console.error('[LOGIN] JWT token generation error:', error)
+      throw new UnauthorizedException('Failed to generate authentication token')
     }
   }
 

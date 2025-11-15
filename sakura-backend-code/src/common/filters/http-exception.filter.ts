@@ -19,16 +19,29 @@ export class AllExceptionsFilter implements ExceptionFilter {
         ? exception.getStatus()
         : HttpStatus.INTERNAL_SERVER_ERROR
 
-    const message =
-      exception instanceof HttpException
-        ? exception.getResponse()
-        : 'Internal server error'
+    let message: any = 'Internal server error'
+    if (exception instanceof HttpException) {
+      const exceptionResponse = exception.getResponse()
+      message = typeof exceptionResponse === 'string' 
+        ? exceptionResponse 
+        : (exceptionResponse as any).message || exceptionResponse
+    } else if (exception instanceof Error) {
+      // In development, show actual error message
+      if (process.env.NODE_ENV === 'development') {
+        message = exception.message
+        console.error('Unhandled exception:', exception)
+      }
+    }
 
     response.status(status).json({
+      success: false,
       statusCode: status,
       timestamp: new Date().toISOString(),
       path: request.url,
       message,
+      ...(process.env.NODE_ENV === 'development' && exception instanceof Error && {
+        error: exception.stack,
+      }),
     })
   }
 }
