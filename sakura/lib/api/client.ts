@@ -16,7 +16,8 @@ class ApiClient {
   private baseURL: string
 
   constructor() {
-    this.baseURL = process.env.NEXT_PUBLIC_API_URL || '/api'
+    // Use full URL if provided, otherwise default to relative /api
+    this.baseURL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001/api'
   }
 
   private async request<T>(
@@ -25,8 +26,15 @@ class ApiClient {
   ): Promise<T> {
     const { method = 'GET', headers = {}, body, params } = options
 
-    // Build URL with query parameters
-    const url = new URL(`${this.baseURL}${endpoint}`, window.location.origin)
+    // Build URL - handle both absolute and relative URLs
+    let url: URL
+    if (this.baseURL.startsWith('http')) {
+      // Absolute URL
+      url = new URL(endpoint.startsWith('/') ? endpoint : `/${endpoint}`, this.baseURL)
+    } else {
+      // Relative URL
+      url = new URL(`${this.baseURL}${endpoint}`, window.location.origin)
+    }
     if (params) {
       Object.entries(params).forEach(([key, value]) => {
         url.searchParams.append(key, value)

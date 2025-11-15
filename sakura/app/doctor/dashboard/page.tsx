@@ -1,10 +1,72 @@
+'use client'
+
+import { useState, useEffect } from 'react'
 import Link from 'next/link'
 import { DoctorSidebar } from '@/components/layout/DoctorSidebar'
+import { doctorApi, DoctorDashboardData } from '@/lib/api/doctors'
 
 export default function DoctorDashboard() {
+  const [dashboardData, setDashboardData] = useState<DoctorDashboardData | null>(null)
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
+
+  useEffect(() => {
+    const fetchDashboardData = async () => {
+      try {
+        setLoading(true)
+        const response = await doctorApi.getDashboard()
+        if (response.success && response.data) {
+          setDashboardData(response.data)
+        } else {
+          setError(response.message || 'Failed to load dashboard data')
+        }
+      } catch (err) {
+        setError('Error loading dashboard data')
+        console.error('Dashboard fetch error:', err)
+      } finally {
+        setLoading(false)
+      }
+    }
+
+    fetchDashboardData()
+  }, [])
+
   const today = new Date()
   const dayName = today.toLocaleDateString('en-US', { weekday: 'long' })
   const dateStr = today.toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })
+
+  if (loading) {
+    return (
+      <div className="flex min-h-screen bg-background-light dark:bg-background-dark">
+        <DoctorSidebar />
+        <main className="flex-1 p-6 flex items-center justify-center">
+          <div className="text-center">
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto mb-4"></div>
+            <p className="text-[#617589] dark:text-gray-400">Loading dashboard...</p>
+          </div>
+        </main>
+      </div>
+    )
+  }
+
+  if (error || !dashboardData) {
+    return (
+      <div className="flex min-h-screen bg-background-light dark:bg-background-dark">
+        <DoctorSidebar />
+        <main className="flex-1 p-6 flex items-center justify-center">
+          <div className="text-center">
+            <p className="text-red-600 dark:text-red-400 mb-4">{error || 'Failed to load dashboard'}</p>
+            <button
+              onClick={() => window.location.reload()}
+              className="px-4 py-2 bg-primary text-white rounded-lg hover:bg-primary/90"
+            >
+              Retry
+            </button>
+          </div>
+        </main>
+      </div>
+    )
+  }
 
   return (
     <div className="flex min-h-screen bg-background-light dark:bg-background-dark">
@@ -35,53 +97,42 @@ export default function DoctorDashboard() {
           <div className="lg:col-span-2">
             <h2 className="text-xl font-bold text-[#111418] dark:text-white mb-4">Today's Appointments</h2>
             <div className="space-y-4">
-              {/* Appointment 1 */}
-              <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 p-4">
-                <div className="flex items-center gap-4">
-                  <div className="w-12 h-12 bg-primary/20 rounded-full flex items-center justify-center">
-                    <span className="text-primary font-semibold">L</span>
-                  </div>
-                  <div className="flex-1">
-                    <div className="flex items-center justify-between mb-1">
-                      <p className="font-semibold text-[#111418] dark:text-white">09:00 AM - Liam Gallagher</p>
-                      <span className="w-2 h-2 bg-green-500 rounded-full"></span>
-                    </div>
-                    <p className="text-sm text-[#617589] dark:text-gray-400">Annual Check-up</p>
-                  </div>
-                </div>
-              </div>
+              {dashboardData.todayAppointments.length > 0 ? (
+                dashboardData.todayAppointments.map((appointment, index) => {
+                  const isHighlighted = index === 1 // Highlight second appointment
+                  const statusColor = appointment.status === 'confirmed' ? 'bg-green-500' : 'bg-primary'
 
-              {/* Appointment 2 - Highlighted */}
-              <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border-2 border-primary p-4">
-                <div className="flex items-center gap-4">
-                  <div className="w-12 h-12 bg-primary/20 rounded-full flex items-center justify-center">
-                    <span className="text-primary font-semibold">O</span>
-                  </div>
-                  <div className="flex-1">
-                    <div className="flex items-center justify-between mb-1">
-                      <p className="font-semibold text-[#111418] dark:text-white">10:00 AM - Olivia Chen</p>
-                      <span className="w-2 h-2 bg-primary rounded-full"></span>
+                  return (
+                    <div
+                      key={appointment.id}
+                      className={`bg-white dark:bg-gray-800 rounded-xl shadow-sm ${
+                        isHighlighted
+                          ? 'border-2 border-primary'
+                          : 'border border-gray-200 dark:border-gray-700'
+                      } p-4`}
+                    >
+                      <div className="flex items-center gap-4">
+                        <div className="w-12 h-12 bg-primary/20 rounded-full flex items-center justify-center">
+                          <span className="text-primary font-semibold">{appointment.patientInitial}</span>
+                        </div>
+                        <div className="flex-1">
+                          <div className="flex items-center justify-between mb-1">
+                            <p className="font-semibold text-[#111418] dark:text-white">
+                              {appointment.time} - {appointment.patientName}
+                            </p>
+                            <span className={`w-2 h-2 ${statusColor} rounded-full`}></span>
+                          </div>
+                          <p className="text-sm text-[#617589] dark:text-gray-400">{appointment.reason}</p>
+                        </div>
+                      </div>
                     </div>
-                    <p className="text-sm text-[#617589] dark:text-gray-400">Follow-up Visit</p>
-                  </div>
+                  )
+                })
+              ) : (
+                <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 p-8 text-center">
+                  <p className="text-[#617589] dark:text-gray-400">No appointments scheduled for today</p>
                 </div>
-              </div>
-
-              {/* Appointment 3 */}
-              <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 p-4">
-                <div className="flex items-center gap-4">
-                  <div className="w-12 h-12 bg-primary/20 rounded-full flex items-center justify-center">
-                    <span className="text-primary font-semibold">B</span>
-                  </div>
-                  <div className="flex-1">
-                    <div className="flex items-center justify-between mb-1">
-                      <p className="font-semibold text-[#111418] dark:text-white">11:00 AM - Ben Carter</p>
-                      <span className="w-2 h-2 bg-green-500 rounded-full"></span>
-                    </div>
-                    <p className="text-sm text-[#617589] dark:text-gray-400">Consultation</p>
-                  </div>
-                </div>
-              </div>
+              )}
             </div>
           </div>
 
@@ -197,22 +248,37 @@ export default function DoctorDashboard() {
         <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 p-6">
           <h2 className="text-xl font-bold text-[#111418] dark:text-white mb-4">Appointments This Week</h2>
           <div className="flex items-end gap-4 h-48">
-            {['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'].map((day, index) => (
-              <div key={day} className="flex-1 flex flex-col items-center">
-                <div
-                  className={`w-full rounded-t transition-colors ${
-                    day === 'Tue'
-                      ? 'bg-primary h-32'
-                      : index === 0 || index === 2 || index === 3
-                      ? 'bg-primary/40 h-24'
-                      : 'bg-gray-200 dark:bg-gray-700 h-8'
-                  }`}
-                ></div>
-                <p className={`mt-2 text-sm font-semibold ${day === 'Tue' ? 'text-primary' : 'text-[#617589] dark:text-gray-400'}`}>
-                  {day}
-                </p>
-              </div>
-            ))}
+            {dashboardData.weeklyChartData.map((dayData, index) => {
+              const maxCount = Math.max(...dashboardData.weeklyChartData.map((d) => d.count), 1)
+              const heightPercent = (dayData.count / maxCount) * 100
+              const height = Math.max(heightPercent, 5) // Minimum 5% height
+              const isMax = dayData.count === maxCount && dayData.count > 0
+
+              return (
+                <div key={dayData.day} className="flex-1 flex flex-col items-center">
+                  <div
+                    className={`w-full rounded-t transition-colors ${
+                      isMax
+                        ? 'bg-primary'
+                        : dayData.count > 0
+                        ? 'bg-primary/40'
+                        : 'bg-gray-200 dark:bg-gray-700'
+                    }`}
+                    style={{ height: `${height}%` }}
+                  ></div>
+                  <p
+                    className={`mt-2 text-sm font-semibold ${
+                      isMax ? 'text-primary' : 'text-[#617589] dark:text-gray-400'
+                    }`}
+                  >
+                    {dayData.day}
+                  </p>
+                  {dayData.count > 0 && (
+                    <p className="text-xs text-[#617589] dark:text-gray-400 mt-1">{dayData.count}</p>
+                  )}
+                </div>
+              )
+            })}
           </div>
         </div>
 
@@ -220,13 +286,28 @@ export default function DoctorDashboard() {
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mt-6">
           <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 p-6">
             <p className="text-sm text-[#617589] dark:text-gray-400 mb-2">Total Patients</p>
-            <p className="text-4xl font-bold text-[#111418] dark:text-white mb-1">850</p>
-            <p className="text-sm text-green-600 dark:text-green-400">+1.5% this month</p>
+            <p className="text-4xl font-bold text-[#111418] dark:text-white mb-1">
+              {dashboardData.statistics.totalPatients.toLocaleString()}
+            </p>
+            <p className="text-sm text-green-600 dark:text-green-400">
+              +{dashboardData.statistics.patientGrowth}% this month
+            </p>
           </div>
           <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 p-6">
             <p className="text-sm text-[#617589] dark:text-gray-400 mb-2">Appointments Today</p>
-            <p className="text-4xl font-bold text-[#111418] dark:text-white mb-1">12</p>
-            <p className="text-sm text-red-600 dark:text-red-400">-5% vs yesterday</p>
+            <p className="text-4xl font-bold text-[#111418] dark:text-white mb-1">
+              {dashboardData.statistics.appointmentsToday}
+            </p>
+            <p
+              className={`text-sm ${
+                dashboardData.statistics.appointmentChangePercent >= 0
+                  ? 'text-red-600 dark:text-red-400'
+                  : 'text-green-600 dark:text-green-400'
+              }`}
+            >
+              {dashboardData.statistics.appointmentChangePercent >= 0 ? '+' : ''}
+              {dashboardData.statistics.appointmentChangePercent}% vs yesterday
+            </p>
           </div>
         </div>
       </main>
