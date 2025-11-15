@@ -117,15 +117,17 @@ export class AssistantsController {
   @ApiQuery({ name: 'assistantId', required: false, type: String })
   @ApiQuery({ name: 'startDate', required: false, type: String })
   @ApiQuery({ name: 'endDate', required: false, type: String })
+  @ApiQuery({ name: 'clinicLocation', required: false, type: String })
   @ApiResponse({ status: 200, description: 'List of all shifts' })
   getAllShifts(
     @Query('assistantId') assistantId?: string,
     @Query('startDate') startDate?: string,
     @Query('endDate') endDate?: string,
+    @Query('clinicLocation') clinicLocation?: string,
   ) {
     const start = startDate ? new Date(startDate) : undefined
     const end = endDate ? new Date(endDate) : undefined
-    return this.assistantsService.getShifts(assistantId, start, end)
+    return this.assistantsService.getShifts(assistantId, start, end, clinicLocation)
   }
 }
 
