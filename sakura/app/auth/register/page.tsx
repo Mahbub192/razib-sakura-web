@@ -2,8 +2,11 @@
 
 import Link from 'next/link'
 import { useState } from 'react'
+import { useRouter } from 'next/navigation'
+import { authApi } from '@/lib/api/auth'
 
 export default function RegisterPage() {
+  const router = useRouter()
   const [formData, setFormData] = useState({
     fullName: '',
     phoneNumber: '',
@@ -17,6 +20,7 @@ export default function RegisterPage() {
   const [showPassword, setShowPassword] = useState(false)
   const [showConfirmPassword, setShowConfirmPassword] = useState(false)
   const [isLoading, setIsLoading] = useState(false)
+  const [error, setError] = useState<string | null>(null)
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value, type, checked } = e.target
@@ -28,34 +32,60 @@ export default function RegisterPage() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
+    setError(null)
     
     // Validation
     if (formData.password !== formData.confirmPassword) {
-      alert('Passwords do not match')
+      setError('Passwords do not match')
       return
     }
     
     if (formData.password.length < 8) {
-      alert('Password must be at least 8 characters')
+      setError('Password must be at least 8 characters')
       return
     }
     
     if (!formData.agreeToTerms) {
-      alert('Please agree to the Terms of Service and Privacy Policy')
+      setError('Please agree to the Terms of Service and Privacy Policy')
       return
     }
 
     setIsLoading(true)
     
-    // TODO: Implement registration logic
-    console.log('Registration attempt:', formData)
-    
-    // Simulate API call
-    setTimeout(() => {
+    try {
+      const response = await authApi.register({
+        fullName: formData.fullName,
+        phoneNumber: formData.phoneNumber,
+        email: formData.email,
+        password: formData.password,
+        role: 'patient', // Default to patient for registration
+      })
+      
+      if (response.success && response.data) {
+        // Redirect to dashboard based on role
+        const userRole = response.data.user.role.toLowerCase()
+        switch (userRole) {
+          case 'patient':
+            router.push('/patient/dashboard')
+            break
+          case 'doctor':
+            router.push('/doctor/dashboard')
+            break
+          case 'assistant':
+            router.push('/assistant/dashboard')
+            break
+          default:
+            router.push('/patient/dashboard')
+        }
+      } else {
+        setError(response.message || 'Registration failed. Please try again.')
+      }
+    } catch (err: any) {
+      setError(err.message || 'An error occurred. Please try again.')
+      console.error('Registration error:', err)
+    } finally {
       setIsLoading(false)
-      // Redirect to login or dashboard after successful registration
-      // router.push('/auth/login')
-    }, 1000)
+    }
   }
 
   return (
@@ -98,6 +128,20 @@ export default function RegisterPage() {
                     Join our clinic to easily manage your appointments and medical history.
                   </p>
                 </div>
+
+                {/* Error Message */}
+                {error && (
+                  <div className="mb-6 rounded-lg bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 p-4">
+                    <div className="flex items-center gap-2">
+                      <span className="material-symbols-outlined text-red-600 dark:text-red-400">
+                        error
+                      </span>
+                      <p className="text-red-600 dark:text-red-400 text-sm font-medium">
+                        {error}
+                      </p>
+                    </div>
+                  </div>
+                )}
 
                 <form onSubmit={handleSubmit} className="space-y-8">
                   {/* Account Information Section */}

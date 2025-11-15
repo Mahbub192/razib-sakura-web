@@ -60,14 +60,17 @@ class ApiClient {
     try {
       const response = await fetch(url.toString(), config)
 
+      const data = await response.json()
+
       if (!response.ok) {
-        const error = await response.json().catch(() => ({
-          message: response.statusText,
-        }))
-        throw new Error(error.message || `HTTP error! status: ${response.status}`)
+        // Handle backend error response format
+        const errorMessage = data.message || data.error || response.statusText
+        throw new Error(errorMessage || `HTTP error! status: ${response.status}`)
       }
 
-      return await response.json()
+      // Backend returns {success, data, message} format
+      // Return as-is for ApiResponse type
+      return data
     } catch (error) {
       console.error('API request failed:', error)
       throw error

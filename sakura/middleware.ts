@@ -11,6 +11,8 @@ const publicRoutes = [
   '/auth/verify',
   '/appointments',
   '/appointments/confirmed',
+  '/help',
+  '/privacy',
 ]
 
 // Define protected routes and their required roles
@@ -31,8 +33,8 @@ export function middleware(request: NextRequest) {
     return NextResponse.next()
   }
 
-  // Get user session/token from cookies or headers
-  // TODO: Implement actual authentication check
+  // Get user session/token from cookies
+  // Token is stored in both localStorage and cookies by apiClient
   const token = request.cookies.get('auth-token')?.value
   const userRole = request.cookies.get('user-role')?.value
 

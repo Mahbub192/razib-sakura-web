@@ -2,26 +2,61 @@
 
 import Link from 'next/link'
 import { useState } from 'react'
+import { useRouter, useSearchParams } from 'next/navigation'
+import { authApi } from '@/lib/api/auth'
 
 export default function LoginPage() {
+  const router = useRouter()
+  const searchParams = useSearchParams()
   const [phoneNumber, setPhoneNumber] = useState('')
   const [password, setPassword] = useState('')
   const [showPassword, setShowPassword] = useState(false)
   const [isLoading, setIsLoading] = useState(false)
+  const [error, setError] = useState<string | null>(null)
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
+    setError(null)
     setIsLoading(true)
     
-    // TODO: Implement login logic
-    console.log('Login attempt:', { phoneNumber, password })
-    
-    // Simulate API call
-    setTimeout(() => {
+    try {
+      const response = await authApi.login({ phoneNumber, password })
+      
+      if (response.success && response.data) {
+        // Get redirect URL from query params or default based on role
+        const redirect = searchParams.get('redirect')
+        const userRole = response.data.user.role.toLowerCase()
+        
+        if (redirect) {
+          router.push(redirect)
+        } else {
+          // Redirect based on user role
+          switch (userRole) {
+            case 'patient':
+              router.push('/patient/dashboard')
+              break
+            case 'doctor':
+              router.push('/doctor/dashboard')
+              break
+            case 'assistant':
+              router.push('/assistant/dashboard')
+              break
+            case 'admin':
+              router.push('/admin/dashboard')
+              break
+            default:
+              router.push('/patient/dashboard')
+          }
+        }
+      } else {
+        setError(response.message || 'Login failed. Please try again.')
+      }
+    } catch (err: any) {
+      setError(err.message || 'An error occurred. Please try again.')
+      console.error('Login error:', err)
+    } finally {
       setIsLoading(false)
-      // Redirect to dashboard after successful login
-      // router.push('/patient/dashboard')
-    }, 1000)
+    }
   }
 
   return (
@@ -52,6 +87,20 @@ export default function LoginPage() {
                 Securely access your appointments and health records.
               </p>
             </div>
+
+            {/* Error Message */}
+            {error && (
+              <div className="w-full rounded-lg bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 p-4">
+                <div className="flex items-center gap-2">
+                  <span className="material-symbols-outlined text-red-600 dark:text-red-400">
+                    error
+                  </span>
+                  <p className="text-red-600 dark:text-red-400 text-sm font-medium">
+                    {error}
+                  </p>
+                </div>
+              </div>
+            )}
 
             {/* Login Form */}
             <form onSubmit={handleSubmit} className="flex w-full flex-col gap-4">
