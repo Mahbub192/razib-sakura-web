@@ -1,7 +1,109 @@
+'use client'
+
+import { useState, useEffect } from 'react'
 import Link from 'next/link'
 import { PatientSidebar } from '@/components/layout/PatientSidebar'
+import { patientApi } from '@/lib/api/patients'
 
 export default function PatientProfile() {
+  const [formData, setFormData] = useState({
+    fullName: '',
+    phoneNumber: '',
+    email: '',
+    dateOfBirth: '',
+    gender: '',
+    address: '',
+  })
+  const [loading, setLoading] = useState(true)
+  const [saving, setSaving] = useState(false)
+  const [error, setError] = useState<string | null>(null)
+  const [success, setSuccess] = useState(false)
+
+  useEffect(() => {
+    const fetchProfile = async () => {
+      try {
+        setLoading(true)
+        const response = await patientApi.getProfile()
+        if (response.success && response.data) {
+          const profile = response.data
+          setFormData({
+            fullName: profile.fullName || '',
+            phoneNumber: profile.phoneNumber || '',
+            email: profile.email || '',
+            dateOfBirth: profile.dateOfBirth ? new Date(profile.dateOfBirth).toISOString().split('T')[0] : '',
+            gender: profile.gender || '',
+            address: profile.address || '',
+          })
+        }
+      } catch (err) {
+        setError('Failed to load profile')
+        console.error('Profile fetch error:', err)
+      } finally {
+        setLoading(false)
+      }
+    }
+
+    fetchProfile()
+  }, [])
+
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
+    const { name, value } = e.target
+    setFormData((prev) => ({ ...prev, [name]: value }))
+  }
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault()
+    setSaving(true)
+    setError(null)
+    setSuccess(false)
+
+    try {
+      const response = await patientApi.updateProfile({
+        fullName: formData.fullName,
+        phoneNumber: formData.phoneNumber,
+        email: formData.email,
+        dateOfBirth: formData.dateOfBirth ? new Date(formData.dateOfBirth) : undefined,
+        gender: formData.gender || undefined,
+        address: formData.address || undefined,
+      })
+
+      if (response.success) {
+        setSuccess(true)
+        setTimeout(() => setSuccess(false), 3000)
+      } else {
+        setError(response.message || 'Failed to update profile')
+      }
+    } catch (err: any) {
+      setError(err.message || 'An error occurred while updating profile')
+      console.error('Profile update error:', err)
+    } finally {
+      setSaving(false)
+    }
+  }
+
+  if (loading) {
+    return (
+      <div className="flex min-h-screen bg-background-light dark:bg-background-dark">
+        <PatientSidebar />
+        <main className="flex-1 p-6 flex items-center justify-center">
+          <div className="text-center">
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto mb-4"></div>
+            <p className="text-[#617589] dark:text-gray-400">Loading profile...</p>
+          </div>
+        </main>
+      </div>
+    )
+  }
+
+  const getInitials = (name: string) => {
+    return name
+      .split(' ')
+      .map((n) => n[0])
+      .join('')
+      .toUpperCase()
+      .slice(0, 2)
+  }
+
   return (
     <div className="flex min-h-screen bg-background-light dark:bg-background-dark">
       <PatientSidebar />
@@ -13,19 +115,35 @@ export default function PatientProfile() {
           <p className="text-[#617589] dark:text-gray-400">Keep your personal information up to date.</p>
         </div>
 
+        {/* Success/Error Messages */}
+        {success && (
+          <div className="mb-6 p-4 bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded-lg">
+            <p className="text-green-600 dark:text-green-400">Profile updated successfully!</p>
+          </div>
+        )}
+        {error && (
+          <div className="mb-6 p-4 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg">
+            <p className="text-red-600 dark:text-red-400">{error}</p>
+          </div>
+        )}
+
         {/* Profile Overview */}
         <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 p-6 mb-6">
           <div className="flex items-center gap-6">
             <div className="relative">
               <div className="w-24 h-24 bg-primary/20 rounded-full flex items-center justify-center">
-                <span className="text-primary font-semibold text-3xl">A</span>
+                <span className="text-primary font-semibold text-3xl">
+                  {getInitials(formData.fullName || 'U')}
+                </span>
               </div>
               <button className="absolute bottom-0 right-0 w-8 h-8 bg-primary text-white rounded-full flex items-center justify-center hover:bg-primary/90 transition-colors">
                 <span className="material-symbols-outlined text-sm">edit</span>
               </button>
             </div>
             <div>
-              <h2 className="text-2xl font-bold text-[#111418] dark:text-white mb-1">Amelia Reyes</h2>
+              <h2 className="text-2xl font-bold text-[#111418] dark:text-white mb-1">
+                {formData.fullName || 'User'}
+              </h2>
               <p className="text-[#617589] dark:text-gray-400">Update your photo and personal details.</p>
             </div>
           </div>
@@ -33,7 +151,7 @@ export default function PatientProfile() {
 
         {/* Form */}
         <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 p-6">
-          <form className="space-y-6">
+          <form onSubmit={handleSubmit} className="space-y-6">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div>
                 <label className="block text-sm font-semibold text-[#111418] dark:text-white mb-2">
@@ -41,8 +159,11 @@ export default function PatientProfile() {
                 </label>
                 <input
                   type="text"
-                  defaultValue="Amelia Reyes"
+                  name="fullName"
+                  value={formData.fullName}
+                  onChange={handleInputChange}
                   className="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg bg-background-light dark:bg-background-dark text-[#111418] dark:text-white focus:outline-none focus:ring-2 focus:ring-primary"
+                  required
                 />
               </div>
               <div>
@@ -51,8 +172,11 @@ export default function PatientProfile() {
                 </label>
                 <input
                   type="tel"
-                  defaultValue="+1 (555) 123-4567"
+                  name="phoneNumber"
+                  value={formData.phoneNumber}
+                  onChange={handleInputChange}
                   className="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg bg-background-light dark:bg-background-dark text-[#111418] dark:text-white focus:outline-none focus:ring-2 focus:ring-primary"
+                  required
                 />
               </div>
               <div>
@@ -61,17 +185,22 @@ export default function PatientProfile() {
                 </label>
                 <input
                   type="email"
-                  defaultValue="amelia.reyes@example.com"
+                  name="email"
+                  value={formData.email}
+                  onChange={handleInputChange}
                   className="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg bg-background-light dark:bg-background-dark text-[#111418] dark:text-white focus:outline-none focus:ring-2 focus:ring-primary"
+                  required
                 />
               </div>
               <div>
                 <label className="block text-sm font-semibold text-[#111418] dark:text-white mb-2">
-                  Age
+                  Date of Birth
                 </label>
                 <input
-                  type="number"
-                  defaultValue="34"
+                  type="date"
+                  name="dateOfBirth"
+                  value={formData.dateOfBirth}
+                  onChange={handleInputChange}
                   className="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg bg-background-light dark:bg-background-dark text-[#111418] dark:text-white focus:outline-none focus:ring-2 focus:ring-primary"
                 />
               </div>
@@ -79,20 +208,28 @@ export default function PatientProfile() {
                 <label className="block text-sm font-semibold text-[#111418] dark:text-white mb-2">
                   Gender
                 </label>
-                <select className="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg bg-background-light dark:bg-background-dark text-[#111418] dark:text-white focus:outline-none focus:ring-2 focus:ring-primary">
-                  <option>Female</option>
-                  <option>Male</option>
-                  <option>Other</option>
+                <select
+                  name="gender"
+                  value={formData.gender}
+                  onChange={handleInputChange}
+                  className="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg bg-background-light dark:bg-background-dark text-[#111418] dark:text-white focus:outline-none focus:ring-2 focus:ring-primary"
+                >
+                  <option value="">Select Gender</option>
+                  <option value="female">Female</option>
+                  <option value="male">Male</option>
+                  <option value="other">Other</option>
                 </select>
               </div>
               <div className="md:col-span-2">
                 <label className="block text-sm font-semibold text-[#111418] dark:text-white mb-2">
                   Location / Address
                 </label>
-                <input
-                  type="text"
-                  defaultValue="123 Health St, Wellness City, 12345"
-                  className="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg bg-background-light dark:bg-background-dark text-[#111418] dark:text-white focus:outline-none focus:ring-2 focus:ring-primary"
+                <textarea
+                  name="address"
+                  value={formData.address}
+                  onChange={handleInputChange}
+                  rows={3}
+                  className="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg bg-background-light dark:bg-background-dark text-[#111418] dark:text-white focus:outline-none focus:ring-2 focus:ring-primary resize-none"
                 />
               </div>
             </div>
@@ -100,15 +237,17 @@ export default function PatientProfile() {
             <div className="flex justify-end gap-4 pt-4 border-t border-gray-200 dark:border-gray-700">
               <button
                 type="button"
+                onClick={() => window.location.reload()}
                 className="px-6 py-3 border border-gray-300 dark:border-gray-600 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
               >
                 Cancel
               </button>
               <button
                 type="submit"
-                className="px-6 py-3 bg-primary text-white rounded-lg hover:bg-primary/90 transition-colors font-semibold"
+                disabled={saving}
+                className="px-6 py-3 bg-primary text-white rounded-lg hover:bg-primary/90 transition-colors font-semibold disabled:opacity-50 disabled:cursor-not-allowed"
               >
-                Save Changes
+                {saving ? 'Saving...' : 'Save Changes'}
               </button>
             </div>
           </form>

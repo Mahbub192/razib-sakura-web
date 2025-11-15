@@ -30,14 +30,34 @@ export default function SetAppointmentSlots() {
     e.preventDefault()
     setIsLoading(true)
     
-    // TODO: Implement API call to create appointment slots
-    console.log('Creating appointment slots:', formData)
-    
-    setTimeout(() => {
+    try {
+      const { doctorApi } = await import('@/lib/api/doctors')
+      
+      // Map form data to API format
+      const slotData = {
+        date: formData.date,
+        startTime: formData.startTime,
+        endTime: formData.endTime,
+        duration: parseInt(formData.slotDuration),
+        clinicId: formData.clinicLocation || undefined,
+        recurrence: formData.recurrence !== 'none' ? formData.recurrence : undefined,
+        associatedResources: formData.associatedResources ? formData.associatedResources.split(',').map(r => r.trim()) : [],
+      }
+      
+      const response = await doctorApi.createAppointmentSlot(slotData)
+      
+      if (response.success) {
+        // Redirect to calendar after successful creation
+        router.push('/doctor/calendar')
+      } else {
+        alert(response.message || 'Failed to create appointment slots')
+        setIsLoading(false)
+      }
+    } catch (err: any) {
+      console.error('Create slot error:', err)
+      alert(err.message || 'An error occurred while creating appointment slots')
       setIsLoading(false)
-      // Redirect to calendar after successful creation
-      router.push('/doctor/calendar')
-    }, 1000)
+    }
   }
 
   const handleCancel = () => {

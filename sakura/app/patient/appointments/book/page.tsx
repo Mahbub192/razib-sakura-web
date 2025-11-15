@@ -47,36 +47,46 @@ export default function BookAppointmentPage() {
 
   const handleConfirm = async () => {
     setIsLoading(true)
-    console.log('Booking appointment:', formData)
     
-    const clinicNames: Record<string, string> = {
-      main: 'Main Clinic, 123 Health St.',
-      downtown: 'Downtown Branch, 456 Wellness Ave.',
-      northside: 'Northside Center, 789 Care Blvd.',
-    }
-    const clinicAddresses: Record<string, string> = {
-      main: '123 Health St., Medville',
-      downtown: '456 Wellness Ave., Medville',
-      northside: '789 Care Blvd., Medville',
-    }
-    
-    const clinicName = clinicNames[formData.clinic] || 'CardioHealth Clinic'
-    const clinicAddress = clinicAddresses[formData.clinic] || '123 Wellness Ave, Suite 101, Medville'
-    
-    setTimeout(() => {
+    try {
+      const { patientApi } = await import('@/lib/api/patients')
+      
+      // Parse date and time from form data
+      const [dateStr, timeStr] = formData.selectedDate?.split(', ') || []
+      const appointmentDate = new Date()
+      // You'll need to properly parse the date and time here
+      // For now, using current date + selected time
+      
+      // For now, we'll need to get doctorId from somewhere else
+      // This is a placeholder - you should get it from doctor selection in the form
+      const bookingData = {
+        doctorId: '', // TODO: Get from doctor selection
+        date: appointmentDate.toISOString().split('T')[0],
+        time: formData.selectedTime || '',
+        reason: 'General consultation', // TODO: Add reason field to form
+        clinicId: formData.clinic || undefined,
+        notes: '', // TODO: Add notes field to form
+      }
+      
+      const response = await patientApi.bookAppointment(bookingData)
+      
+      if (response.success && response.data) {
+        const appointment = response.data
+        const params = new URLSearchParams({
+          appointmentId: appointment.id,
+          date: appointment.date || formData.selectedDate || '',
+          time: appointment.time || formData.selectedTime || '',
+        })
+        router.push(`/appointments/confirmed?${params.toString()}`)
+      } else {
+        alert(response.message || 'Failed to book appointment')
+        setIsLoading(false)
+      }
+    } catch (err: any) {
+      console.error('Book appointment error:', err)
+      alert(err.message || 'An error occurred while booking appointment')
       setIsLoading(false)
-      const params = new URLSearchParams({
-        patientName: formData.patientName,
-        date: formData.selectedDate || 'Monday, October 28th',
-        time: formData.selectedTime || '10:30 AM (PST)',
-        clinicName,
-        clinicAddress,
-        phoneNumber: formData.phoneNumber,
-        doctorName: 'Dr. Emily Carter',
-        doctorSpecialty: 'Cardiologist',
-      })
-      router.push(`/appointments/confirmed?${params.toString()}`)
-    }, 1000)
+    }
   }
 
   const getDaysInMonth = (date: Date) => {

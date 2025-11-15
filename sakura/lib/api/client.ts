@@ -17,7 +17,24 @@ class ApiClient {
 
   constructor() {
     // Use full URL if provided, otherwise default to relative /api
-    this.baseURL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001/api'
+    // In browser, process.env might not be available, so check window location
+    if (typeof window !== 'undefined') {
+      this.baseURL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001/api'
+    } else {
+      this.baseURL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001/api'
+    }
+    
+    // Ensure baseURL always ends with /api
+    if (this.baseURL && !this.baseURL.includes('/api')) {
+      this.baseURL = this.baseURL.endsWith('/') 
+        ? `${this.baseURL}api` 
+        : `${this.baseURL}/api`
+    }
+    
+    // Debug log
+    if (typeof window !== 'undefined' && process.env.NODE_ENV === 'development') {
+      console.log('[API Client] Initialized with baseURL:', this.baseURL)
+    }
   }
 
   private async request<T>(
@@ -28,12 +45,34 @@ class ApiClient {
 
     // Build URL - handle both absolute and relative URLs
     let url: URL
+    
+    // Ensure baseURL is set
+    if (!this.baseURL) {
+      this.baseURL = 'http://localhost:3001/api'
+      console.warn('[API Client] baseURL was empty, using default:', this.baseURL)
+    }
+    
     if (this.baseURL.startsWith('http')) {
-      // Absolute URL
-      url = new URL(endpoint.startsWith('/') ? endpoint : `/${endpoint}`, this.baseURL)
+      // Absolute URL - baseURL already includes /api
+      // Remove leading / from endpoint to append to baseURL path
+      const normalizedEndpoint = endpoint.startsWith('/') ? endpoint.slice(1) : endpoint
+      const baseUrlWithSlash = this.baseURL.endsWith('/') ? this.baseURL : `${this.baseURL}/`
+      url = new URL(normalizedEndpoint, baseUrlWithSlash)
+      
+      // Debug log (always show in development)
+      if (typeof window !== 'undefined') {
+        console.log('[API Client] Making request:', {
+          method: options.method || 'GET',
+          baseURL: this.baseURL,
+          endpoint,
+          normalizedEndpoint,
+          finalURL: url.toString()
+        })
+      }
     } else {
       // Relative URL
-      url = new URL(`${this.baseURL}${endpoint}`, window.location.origin)
+      const normalizedEndpoint = endpoint.startsWith('/') ? endpoint : `/${endpoint}`
+      url = new URL(`${this.baseURL}${normalizedEndpoint}`, window.location.origin)
     }
     if (params) {
       Object.entries(params).forEach(([key, value]) => {
