@@ -13,7 +13,8 @@ const navItems: NavItem[] = [
   { name: 'Dashboard', href: '/doctor/dashboard', icon: 'dashboard' },
   { name: 'Patients', href: '/doctor/patients', icon: 'people' },
   { name: 'Calendar', href: '/doctor/calendar', icon: 'event' },
-  { name: 'Set Appointment Slots', href: '/doctor/appointment-slots', icon: 'schedule' },
+  { name: 'Appointment Slots', href: '/doctor/appointment-slots', icon: 'schedule' },
+  { name: 'Home Page Information', href: '/doctor/home-page', icon: 'edit' },
   { name: 'Reports', href: '/doctor/reports', icon: 'bar_chart' },
   { name: 'Settings', href: '/doctor/settings/profile', icon: 'settings' },
 ]
