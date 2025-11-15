@@ -102,16 +102,33 @@ export class PatientsController {
   @Get(':id/medical-records')
   @ApiOperation({ summary: 'Get patient medical records' })
   @ApiQuery({ name: 'category', required: false, type: String })
-  @ApiResponse({ status: 200, description: 'List of medical records' })
-  getMedicalRecords(@Param('id') id: string, @Query('category') category?: string) {
-    return this.patientsService.getMedicalRecords(id, category)
+  @ApiQuery({ name: 'page', required: false, type: Number })
+  @ApiQuery({ name: 'limit', required: false, type: Number })
+  @ApiResponse({ status: 200, description: 'List of medical records with pagination' })
+  getMedicalRecords(
+    @Param('id') id: string,
+    @Query('category') category?: string,
+    @Query('page') page?: string,
+    @Query('limit') limit?: string,
+  ) {
+    const pageNum = page ? parseInt(page, 10) : 1
+    const limitNum = limit ? parseInt(limit, 10) : 10
+    return this.patientsService.getMedicalRecords(id, category, pageNum, limitNum)
   }
 
   @Get(':id/lab-results')
   @ApiOperation({ summary: 'Get patient lab results' })
-  @ApiResponse({ status: 200, description: 'List of lab results' })
-  getLabResults(@Param('id') id: string) {
-    return this.patientsService.getLabResults(id)
+  @ApiQuery({ name: 'testType', required: false, type: String })
+  @ApiQuery({ name: 'startDate', required: false, type: String })
+  @ApiQuery({ name: 'endDate', required: false, type: String })
+  @ApiResponse({ status: 200, description: 'List of lab results with doctor notes' })
+  getLabResults(
+    @Param('id') id: string,
+    @Query('testType') testType?: string,
+    @Query('startDate') startDate?: string,
+    @Query('endDate') endDate?: string,
+  ) {
+    return this.patientsService.getLabResults(id, testType, startDate, endDate)
   }
 
   @Get(':id/prescriptions')
@@ -138,9 +155,10 @@ export class PatientsController {
 
   @Get(':id/messages')
   @ApiOperation({ summary: 'Get patient conversations' })
-  @ApiResponse({ status: 200, description: 'List of conversations' })
-  getMessages(@Param('id') id: string) {
-    return this.patientsService.getMessages(id)
+  @ApiQuery({ name: 'conversationId', required: false, type: String })
+  @ApiResponse({ status: 200, description: 'List of conversations with optional messages' })
+  getMessages(@Param('id') id: string, @Query('conversationId') conversationId?: string) {
+    return this.patientsService.getMessages(id, conversationId)
   }
 }
 
