@@ -41,6 +41,17 @@ export const PatientSidebar = () => {
         </div>
       </div>
 
+      {/* Book Appointment Button */}
+      <div className="p-4 border-b border-gray-200 dark:border-gray-700">
+        <Link
+          href="/patient/appointments/book"
+          className="w-full flex items-center justify-center gap-2 px-4 py-3 bg-primary text-white rounded-lg hover:bg-primary/90 transition-colors font-semibold shadow-sm"
+        >
+          <span className="material-symbols-outlined text-lg">add_circle</span>
+          <span>Book Appointment</span>
+        </Link>
+      </div>
+
       {/* Navigation */}
       <nav className="flex-1 p-4 space-y-2">
         {navItems.map((item) => {
