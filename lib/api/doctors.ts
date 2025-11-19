@@ -240,5 +240,68 @@ export const doctorApi = {
   async updateClinicInfo(clinicData: any): Promise<ApiResponse<any>> {
     return apiClient.patch<ApiResponse<any>>('/doctors/profile/clinic', clinicData)
   },
+
+  // Assistant Management
+  async getAssistants(): Promise<ApiResponse<any[]>> {
+    const profileResponse = await apiClient.get<ApiResponse<any>>('/doctors/profile')
+    if (!profileResponse.success || !profileResponse.data) {
+      throw new Error('Failed to get doctor profile')
+    }
+    const doctorId = profileResponse.data.id
+
+    return apiClient.get<ApiResponse<any[]>>(`/doctors/${doctorId}/assistants`)
+  },
+
+  async createAssistant(data: {
+    fullName: string
+    email: string
+    phoneNumber: string
+    password: string
+    permissions?: string[]
+  }): Promise<ApiResponse<any>> {
+    const profileResponse = await apiClient.get<ApiResponse<any>>('/doctors/profile')
+    if (!profileResponse.success || !profileResponse.data) {
+      throw new Error('Failed to get doctor profile')
+    }
+    const doctorId = profileResponse.data.id
+
+    return apiClient.post<ApiResponse<any>>(`/doctors/${doctorId}/assistants`, data)
+  },
+
+  async updateAssistant(assistantId: string, data: {
+    fullName?: string
+    email?: string
+    phoneNumber?: string
+    password?: string
+    permissions?: string[]
+  }): Promise<ApiResponse<any>> {
+    const profileResponse = await apiClient.get<ApiResponse<any>>('/doctors/profile')
+    if (!profileResponse.success || !profileResponse.data) {
+      throw new Error('Failed to get doctor profile')
+    }
+    const doctorId = profileResponse.data.id
+
+    return apiClient.patch<ApiResponse<any>>(`/doctors/${doctorId}/assistants/${assistantId}`, data)
+  },
+
+  async toggleAssistantStatus(assistantId: string): Promise<ApiResponse<any>> {
+    const profileResponse = await apiClient.get<ApiResponse<any>>('/doctors/profile')
+    if (!profileResponse.success || !profileResponse.data) {
+      throw new Error('Failed to get doctor profile')
+    }
+    const doctorId = profileResponse.data.id
+
+    return apiClient.patch<ApiResponse<any>>(`/doctors/${doctorId}/assistants/${assistantId}/toggle-status`)
+  },
+
+  async deleteAssistant(assistantId: string): Promise<ApiResponse<any>> {
+    const profileResponse = await apiClient.get<ApiResponse<any>>('/doctors/profile')
+    if (!profileResponse.success || !profileResponse.data) {
+      throw new Error('Failed to get doctor profile')
+    }
+    const doctorId = profileResponse.data.id
+
+    return apiClient.delete<ApiResponse<any>>(`/doctors/${doctorId}/assistants/${assistantId}`)
+  },
 }
 

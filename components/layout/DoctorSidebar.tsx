@@ -14,6 +14,7 @@ const navItems: NavItem[] = [
   { name: 'Patients', href: '/doctor/patients', icon: 'people' },
   { name: 'Calendar', href: '/doctor/calendar', icon: 'event' },
   { name: 'Appointment Slots', href: '/doctor/appointment-slots', icon: 'schedule' },
+  { name: 'Assistants', href: '/doctor/assistants', icon: 'support_agent' },
   { name: 'Home Page Information', href: '/doctor/home-page', icon: 'edit' },
   { name: 'Reports', href: '/doctor/reports', icon: 'bar_chart' },
   { name: 'Settings', href: '/doctor/settings/profile', icon: 'settings' },

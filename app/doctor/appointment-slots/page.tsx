@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { DoctorSidebar } from '@/components/layout/DoctorSidebar'
 import { doctorApi } from '@/lib/api/doctors'
+import { commonApi, Clinic } from '@/lib/api/common'
 
 interface AppointmentSlot {
   id: string
@@ -34,6 +35,7 @@ export default function SetAppointmentSlots() {
     associatedResources: '',
   })
   const [existingSlots, setExistingSlots] = useState<SlotGroup[]>([])
+  const [clinics, setClinics] = useState<Clinic[]>([])
   const [isLoading, setIsLoading] = useState(false)
   const [isLoadingSlots, setIsLoadingSlots] = useState(true)
   const [error, setError] = useState<string | null>(null)
@@ -42,7 +44,19 @@ export default function SetAppointmentSlots() {
 
   useEffect(() => {
     fetchExistingSlots()
+    fetchClinics()
   }, [])
+
+  const fetchClinics = async () => {
+    try {
+      const response = await commonApi.getClinics()
+      if (response.success && response.data) {
+        setClinics(response.data)
+      }
+    } catch (err) {
+      console.error('Failed to fetch clinics:', err)
+    }
+  }
 
   const fetchExistingSlots = async () => {
     try {
@@ -82,13 +96,21 @@ export default function SetAppointmentSlots() {
     setSuccess(null)
 
     try {
+      // Validate clinicId - must be a valid UUID or null
+      const isValidUUID = (str: string) => {
+        const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i
+        return uuidRegex.test(str)
+      }
+
       // Map form data to API format
       const slotData = {
         date: formData.date,
         startTime: formData.startTime,
         endTime: formData.endTime,
         slotDuration: parseInt(formData.slotDuration),
-        clinicId: formData.clinicLocation || '',
+        clinicId: formData.clinicLocation && isValidUUID(formData.clinicLocation) 
+          ? formData.clinicLocation 
+          : undefined,
         recurrence: formData.recurrence !== 'none' ? formData.recurrence : undefined,
         associatedResources: formData.associatedResources
           ? formData.associatedResources.split(',').map((r) => r.trim()).filter(r => r)
@@ -342,21 +364,26 @@ export default function SetAppointmentSlots() {
                 {/* Clinic Location */}
                 <div>
                   <label className="block text-sm font-semibold text-[#111418] dark:text-white mb-2">
-                    Clinic Location
+                    Clinic Location <span className="text-gray-400 text-xs font-normal">(Optional)</span>
                   </label>
                   <select
                     name="clinicLocation"
                     value={formData.clinicLocation}
                     onChange={handleInputChange}
                     className="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg bg-background-light dark:bg-background-dark text-[#111418] dark:text-white focus:outline-none focus:ring-2 focus:ring-primary"
-                    required
                   >
-                    <option value="">Choose Clinic Name</option>
-                    <option value="main">Main Street Clinic</option>
-                    <option value="downtown">Downtown Branch</option>
-                    <option value="northside">Northside Center</option>
-                    <option value="southside">Southside Medical Center</option>
+                    <option value="">No Clinic Selected</option>
+                    {clinics.map((clinic) => (
+                      <option key={clinic.id} value={clinic.id}>
+                        {clinic.name} {clinic.address ? `- ${clinic.address}` : ''}
+                      </option>
+                    ))}
                   </select>
+                  {clinics.length === 0 && (
+                    <p className="text-xs text-[#617589] dark:text-gray-400 mt-1">
+                      No clinics available. You can create slots without a clinic.
+                    </p>
+                  )}
                 </div>
 
                 {/* Associated Resources */}
