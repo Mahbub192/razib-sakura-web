@@ -4,6 +4,7 @@ import Link from 'next/link'
 import { useSearchParams } from 'next/navigation'
 import { Suspense } from 'react'
 import { Header } from '@/components/layout/Header'
+import { DOCTOR_NAME } from '@/lib/constants'
 
 function ConfirmationContent() {
   const searchParams = useSearchParams()
@@ -15,7 +16,7 @@ function ConfirmationContent() {
   const clinicName = searchParams.get('clinicName') || 'CardioHealth Clinic'
   const clinicAddress = searchParams.get('clinicAddress') || '123 Wellness Ave, Suite 101, Medville'
   const phoneNumber = searchParams.get('phoneNumber') || '(555) 123-4567'
-  const doctorName = searchParams.get('doctorName') || 'Dr. Emily Carter'
+  const doctorName = searchParams.get('doctorName') || DOCTOR_NAME
   const doctorSpecialty = searchParams.get('doctorSpecialty') || 'Cardiologist'
 
   const handleAddToCalendar = () => {

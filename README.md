@@ -1,8 +1,21 @@
 # Sakura - Healthcare Management System
 
-A comprehensive healthcare management system with patient portal, doctor dashboard, and clinic management features.
+A comprehensive healthcare management system for **Dr. Ashraful Islam Razib** with patient portal, doctor dashboard, assistant management, and clinic operations.
 
 Built with **Next.js 14** (App Router), **TypeScript**, and **React**.
+
+## Doctor Information
+- **Primary Doctor:** Dr. Ashraful Islam Razib
+- **Specialty:** Cardiologist
+
+## User Roles
+
+The system supports **four user roles** with role-based access control:
+
+1. **Doctor** - Dr. Ashraful Islam Razib (Primary user)
+2. **Assistant** - Medical assistants managing appointments and patients
+3. **Patient** - Patients booking appointments with Dr. Ashraful Islam Razib
+4. **Admin** - System administrators with full access
 
 ## Project Structure
 

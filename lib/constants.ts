@@ -6,6 +6,10 @@
 export const APP_NAME = 'Sakura'
 export const APP_DESCRIPTION = 'Healthcare Management System'
 
+// Doctor Information
+export const DOCTOR_NAME = 'Dr. Ashraful Islam Razib'
+export const DOCTOR_FULL_NAME = 'Dr. Ashraful Islam Razib'
+
 // User Roles
 export const USER_ROLES = {
   PATIENT: 'patient',

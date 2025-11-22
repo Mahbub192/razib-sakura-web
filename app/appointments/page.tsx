@@ -4,6 +4,7 @@ import Link from 'next/link'
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { Header } from '@/components/layout/Header'
+import { DOCTOR_NAME } from '@/lib/constants'
 
 export default function BookAppointmentPage() {
   const router = useRouter()
@@ -75,7 +76,7 @@ export default function BookAppointmentPage() {
         clinicName,
         clinicAddress,
         phoneNumber: '(555) 123-4567',
-        doctorName: 'Dr. Emily Carter',
+        doctorName: DOCTOR_NAME,
         doctorSpecialty: 'Cardiologist',
       })
       router.push(`/appointments/confirmed?${params.toString()}`)
@@ -378,7 +379,7 @@ export default function BookAppointmentPage() {
                     <div className="space-y-3 text-gray-700 dark:text-gray-200">
                       <div className="flex items-center gap-3">
                         <span className="material-symbols-outlined text-primary dark:text-primary/80">person</span>
-                        <span className="font-semibold">Dr. Emily Carter</span>
+                        <span className="font-semibold">{DOCTOR_NAME}</span>
                         <span className="text-sm text-gray-500 dark:text-gray-400">(Cardiologist)</span>
                       </div>
                       <div className="flex items-center gap-3">

@@ -170,4 +170,29 @@ export const assistantApi = {
   async getClinicInfo(): Promise<ApiResponse<any>> {
     return apiClient.get<ApiResponse<any>>('/assistants/profile/clinic')
   },
+
+  // Book appointment for a patient (Assistant)
+  async bookAppointment(data: {
+    patientId: string
+    doctorId: string
+    clinicId: string
+    date: string
+    time: string
+    duration?: number
+    reason?: string
+    notes?: string
+    type?: string
+  }): Promise<ApiResponse<any>> {
+    return apiClient.post<ApiResponse<any>>('/assistants/appointments', {
+      patientId: data.patientId,
+      doctorId: data.doctorId,
+      clinicId: data.clinicId,
+      date: data.date,
+      time: data.time,
+      duration: data.duration || 30,
+      reason: data.reason,
+      notes: data.notes,
+      type: data.type || 'CONSULTATION',
+    })
+  },
 }
