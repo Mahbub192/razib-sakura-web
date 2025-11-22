@@ -70,7 +70,9 @@ export default function HomePageEditor() {
       const response = await homePageApi.getContent()
       
       if (response.success && response.data) {
-        setFormData(response.data)
+        // Filter out fields that should not be in form data (id, createdAt, updatedAt)
+        const { id, createdAt, updatedAt, ...contentData } = response.data as any
+        setFormData(contentData as HomePageContent)
       } else {
         setError(response.message || 'Failed to load home page content')
       }
@@ -130,7 +132,10 @@ export default function HomePageEditor() {
     setSuccess(null)
     
     try {
-      const response = await homePageApi.updateContent(formData)
+      // Filter out fields that should not be sent (id, createdAt, updatedAt)
+      const { id, createdAt, updatedAt, ...updateData } = formData as any
+      
+      const response = await homePageApi.updateContent(updateData)
       
       if (response.success) {
         setSuccess('Home page information updated successfully!')
