@@ -192,7 +192,7 @@ export const assistantApi = {
       duration: data.duration || 30,
       reason: data.reason,
       notes: data.notes,
-      type: data.type || 'CONSULTATION',
+      type: data.type || 'consultation', // Backend expects lowercase enum values
     })
   },
 }

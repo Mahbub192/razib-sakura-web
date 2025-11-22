@@ -219,18 +219,75 @@ export default function NewAppointmentPage() {
         return
       }
 
-      // For new patients, we need to create patient first or use existing patient ID
+      // For new patients, find or create patient by phone number
       let finalPatientId = formData.patientId
 
-      // If it's a new patient and we don't have patientId, we'll need to create one
-      // For now, we'll use the phone number to find or create patient
-      // In a real implementation, you'd create the patient first
       if (formData.patientType === 'new' && !finalPatientId) {
-        // TODO: Create patient first, then use the ID
-        // For now, we'll need patientId - this should be handled by backend
-        setError('New patient registration is required. Please ensure patient is registered first.')
-        setIsLoading(false)
-        return
+        // Try to find existing patient by phone number
+        try {
+          const searchResponse = await assistantApi.getPatients({ search: formData.phoneNumber, limit: 1 })
+          if (searchResponse.success && searchResponse.data?.patients && searchResponse.data.patients.length > 0) {
+            // Patient found by phone number
+            finalPatientId = searchResponse.data.patients[0].id
+          } else {
+            // Patient not found, create new patient
+            try {
+              // Generate a valid email from phone number (remove non-digits)
+              const cleanPhone = formData.phoneNumber.replace(/\D/g, '')
+              const tempEmail = `patient.${cleanPhone}@temp.sakura.com`
+              
+              // Calculate date of birth from age if provided
+              let dateOfBirth: string | undefined
+              if (formData.age) {
+                const age = parseInt(formData.age)
+                if (!isNaN(age) && age > 0 && age < 150) {
+                  const birthYear = new Date().getFullYear() - age
+                  dateOfBirth = new Date(birthYear, 0, 1).toISOString().split('T')[0]
+                }
+              }
+
+              // Create patient using common API
+              const createPatientResponse = await commonApi.createPatient({
+                fullName: formData.patientName,
+                phoneNumber: formData.phoneNumber,
+                email: tempEmail,
+                gender: formData.gender || undefined,
+                dateOfBirth: dateOfBirth,
+                address: formData.location || undefined,
+              })
+              
+              if (createPatientResponse.success && createPatientResponse.data) {
+                // Get patient ID from response (could be in data.id or data.user.id)
+                finalPatientId = createPatientResponse.data.id || createPatientResponse.data.user?.id
+                if (!finalPatientId) {
+                  console.error('Patient creation response:', createPatientResponse)
+                  setError('Patient created but ID not found. Please try again.')
+                  setIsLoading(false)
+                  return
+                }
+              } else {
+                // Show the actual error message from the API
+                const errorMsg = createPatientResponse.message || 'Unable to create patient. Please try again.'
+                console.error('Patient creation failed:', createPatientResponse)
+                setError(errorMsg)
+                setIsLoading(false)
+                return
+              }
+            } catch (createErr: any) {
+              console.error('Error creating patient:', createErr)
+              // Show the actual error message
+              const errorMsg = createErr.response?.data?.message || createErr.message || 'Unable to create patient. Please try again or contact administrator.'
+              setError(errorMsg)
+              setIsLoading(false)
+              return
+            }
+          }
+        } catch (searchErr: any) {
+          console.error('Error searching for patient:', searchErr)
+          setError('Unable to verify patient. Please try again.')
+          setIsLoading(false)
+          return
+        }
       }
 
       // Convert time to 24-hour format
@@ -245,7 +302,7 @@ export default function NewAppointmentPage() {
         duration: 30, // Default 30 minutes
         reason: formData.notes || undefined,
         notes: formData.notes || undefined,
-        type: 'CONSULTATION',
+        type: 'consultation', // Backend expects lowercase enum values
       }
 
       const response = await assistantApi.bookAppointment(bookingData)

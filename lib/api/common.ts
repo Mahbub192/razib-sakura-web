@@ -81,5 +81,41 @@ export const commonApi = {
       queryParams
     )
   },
+
+  // Create a new patient (for assistants to create patients on the fly)
+  async createPatient(data: {
+    fullName: string
+    phoneNumber: string
+    email?: string
+    gender?: string
+    dateOfBirth?: string
+    address?: string
+  }): Promise<ApiResponse<any>> {
+    // Ensure email is valid - remove non-alphanumeric from phone for email
+    const cleanPhone = data.phoneNumber.replace(/\D/g, '')
+    const validEmail = data.email || `patient.${cleanPhone}@temp.sakura.com`
+    
+    // Ensure phone number has proper format (add + if not present and it's a number)
+    let formattedPhone = data.phoneNumber
+    if (!formattedPhone.startsWith('+') && /^\d/.test(formattedPhone)) {
+      // If it starts with a digit and doesn't have +, assume it needs country code
+      // For Bangladesh, add +880 if it starts with 0
+      if (formattedPhone.startsWith('0')) {
+        formattedPhone = '+880' + formattedPhone.substring(1)
+      } else if (formattedPhone.length >= 10) {
+        formattedPhone = '+880' + formattedPhone
+      }
+    }
+
+    return apiClient.post<ApiResponse<any>>('/auth/register', {
+      fullName: data.fullName,
+      phoneNumber: formattedPhone,
+      email: validEmail,
+      password: 'TempPass123!', // Temporary password, patient can change later
+      role: 'patient',
+      gender: data.gender,
+      dateOfBirth: data.dateOfBirth,
+    })
+  },
 }
 
