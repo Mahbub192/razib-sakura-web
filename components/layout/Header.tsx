@@ -103,6 +103,9 @@ export const Header = () => {
         <Link href="/" className="text-primary text-sm font-bold leading-normal">
           Home
         </Link>
+        <Link href="/today" className="text-[#111418] dark:text-gray-300 hover:text-primary dark:hover:text-primary text-sm font-medium leading-normal">
+          Today's Patients
+        </Link>
         <Link href="/find-doctor" className="text-[#111418] dark:text-gray-300 hover:text-primary dark:hover:text-primary text-sm font-medium leading-normal">
           Find a Doctor
         </Link>
