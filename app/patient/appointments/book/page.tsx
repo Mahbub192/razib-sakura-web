@@ -7,12 +7,27 @@ import { PatientSidebar } from '@/components/layout/PatientSidebar'
 import { patientApi } from '@/lib/api/patients'
 import { commonApi, Doctor, Clinic, AppointmentSlot } from '@/lib/api/common'
 
+// Format date to YYYY-MM-DD in local timezone (helper function)
+const formatDateLocal = (date: Date) => {
+  const year = date.getFullYear()
+  const month = String(date.getMonth() + 1).padStart(2, '0')
+  const day = String(date.getDate()).padStart(2, '0')
+  return `${year}-${month}-${day}`
+}
+
 export default function BookAppointmentPage() {
   const router = useRouter()
+  
+  // Initialize with current date
+  const initialToday = new Date()
+  initialToday.setHours(0, 0, 0, 0)
+  const todayDateStr = formatDateLocal(initialToday)
+  const todayDateObj = new Date(initialToday)
+  
   const [formData, setFormData] = useState({
     doctorId: '',
     clinicId: '',
-    selectedDate: '',
+    selectedDate: todayDateStr, // Initialize with current date
     selectedTime: '',
     reason: '',
     notes: '',
@@ -22,7 +37,7 @@ export default function BookAppointmentPage() {
   const [clinics, setClinics] = useState<Clinic[]>([])
   const [availableSlots, setAvailableSlots] = useState<AppointmentSlot[]>([])
   const [currentMonth, setCurrentMonth] = useState(new Date())
-  const [selectedDate, setSelectedDate] = useState<Date | null>(null)
+  const [selectedDate, setSelectedDate] = useState<Date | null>(todayDateObj) // Initialize with current date
   const [isLoading, setIsLoading] = useState(false)
   const [loadingData, setLoadingData] = useState(true)
   const [error, setError] = useState<string | null>(null)
@@ -74,7 +89,7 @@ export default function BookAppointmentPage() {
     if (!formData.doctorId || !selectedDate) return
 
     try {
-      const dateStr = selectedDate.toISOString().split('T')[0]
+      const dateStr = formatDateLocal(selectedDate)
       const endDateStr = dateStr // Same day for now
 
       const response = await commonApi.getDoctorAppointmentSlots(formData.doctorId, dateStr, endDateStr)
@@ -82,11 +97,8 @@ export default function BookAppointmentPage() {
         // Find slots for the selected date
         const daySlots = response.data.find((slotGroup) => slotGroup.date === dateStr)
         if (daySlots) {
-          // Filter available slots (not booked)
-          const available = daySlots.slots.filter(
-            (slot) => slot.status === 'pending' || slot.status === 'available' || !slot.patientName
-          )
-          setAvailableSlots(available)
+          // Show ALL slots (both available and booked) - don't filter
+          setAvailableSlots(daySlots.slots)
         } else {
           setAvailableSlots([])
         }
@@ -97,6 +109,15 @@ export default function BookAppointmentPage() {
       setAvailableSlots([])
     }
   }
+  
+  // Format time slot from 24-hour to 12-hour format
+  const formatTimeSlot = (time24h: string) => {
+    const [hours, minutes] = time24h.split(':')
+    const hour = parseInt(hours)
+    const period = hour >= 12 ? 'PM' : 'AM'
+    const hour12 = hour % 12 || 12
+    return `${hour12}:${minutes} ${period}`
+  }
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target
@@ -105,10 +126,13 @@ export default function BookAppointmentPage() {
 
   const handleDateSelect = (day: number) => {
     const date = new Date(currentMonth.getFullYear(), currentMonth.getMonth(), day)
+    date.setHours(0, 0, 0, 0) // Normalize to start of day
     setSelectedDate(date)
+    const dateStr = formatDateLocal(date)
     setFormData((prev) => ({
       ...prev,
-      selectedDate: date.toISOString().split('T')[0],
+      selectedDate: dateStr,
+      selectedTime: '', // Reset time when date changes
     }))
   }
 
@@ -147,6 +171,7 @@ export default function BookAppointmentPage() {
         duration: 30, // Default 30 minutes
         reason: formData.reason || undefined,
         notes: formData.notes || undefined,
+        type: 'consultation', // Backend expects lowercase enum values
       }
 
       const response = await patientApi.bookAppointment(bookingData)
@@ -157,11 +182,22 @@ export default function BookAppointmentPage() {
           router.push('/patient/appointments')
         }, 2000)
       } else {
-        setError(response.message || 'Failed to book appointment')
+        // Show better error messages for one appointment per day
+        const errorMsg = response.message || 'Failed to book appointment'
+        if (errorMsg.includes('already has an appointment') || errorMsg.includes('one appointment per day')) {
+          setError('আপনার এই তারিখে ইতিমধ্যে একটি appointment আছে। একজন patient একদিনে শুধুমাত্র একটি appointment নিতে পারবে।')
+        } else {
+          setError(errorMsg)
+        }
       }
     } catch (err: any) {
       console.error('Book appointment error:', err)
-      setError(err.message || 'An error occurred while booking appointment')
+      const errorMsg = err.response?.data?.message || err.message || 'An error occurred while booking appointment'
+      if (errorMsg.includes('already has an appointment') || errorMsg.includes('one appointment per day')) {
+        setError('আপনার এই তারিখে ইতিমধ্যে একটি appointment আছে। একজন patient একদিনে শুধুমাত্র একটি appointment নিতে পারবে।')
+      } else {
+        setError(errorMsg)
+      }
     } finally {
       setIsLoading(false)
     }
@@ -347,27 +383,33 @@ export default function BookAppointmentPage() {
                     </div>
                   ))}
                   {calendarDays.map((day, index) => {
-                    const isPast = day
-                      ? new Date(currentMonth.getFullYear(), currentMonth.getMonth(), day) <
-                        new Date(new Date().setHours(0, 0, 0, 0))
-                      : false
+                    if (!day) {
+                      return <div key={index}></div>
+                    }
+                    const dayDate = new Date(currentMonth.getFullYear(), currentMonth.getMonth(), day)
+                    dayDate.setHours(0, 0, 0, 0)
+                    const today = new Date()
+                    today.setHours(0, 0, 0, 0)
+                    const isPast = dayDate < today
+                    const isSelected = selectedDate && 
+                      selectedDate.getDate() === day &&
+                      selectedDate.getMonth() === currentMonth.getMonth() &&
+                      selectedDate.getFullYear() === currentMonth.getFullYear()
+                    
                     return (
                       <button
                         key={index}
-                        onClick={() => day && !isPast && handleDateSelect(day)}
-                        disabled={!day || isPast}
+                        onClick={() => !isPast && handleDateSelect(day)}
+                        disabled={isPast}
                         className={`py-2 rounded-lg transition-colors ${
-                          !day
-                            ? ''
-                            : isPast
-                            ? 'text-gray-400 dark:text-gray-600 cursor-not-allowed'
-                            : selectedDate?.getDate() === day &&
-                              selectedDate?.getMonth() === currentMonth.getMonth()
-                            ? 'bg-primary text-white'
+                          isPast
+                            ? 'text-gray-400 dark:text-gray-600 cursor-not-allowed opacity-50'
+                            : isSelected
+                            ? 'bg-primary text-white font-semibold'
                             : 'hover:bg-gray-100 dark:hover:bg-gray-700 text-[#111418] dark:text-white'
                         }`}
                       >
-                        {day || ''}
+                        {day}
                       </button>
                     )
                   })}
@@ -382,37 +424,36 @@ export default function BookAppointmentPage() {
                 </h3>
                 {!selectedDate ? (
                   <p className="text-[#617589] dark:text-gray-400 text-sm">Please select a date first</p>
-                ) : availableSlots.length === 0 && formData.doctorId ? (
-                  <div className="grid grid-cols-3 gap-2">
-                    {allTimeSlots.map((time) => (
-                      <button
-                        key={time}
-                        onClick={() => handleTimeSelect(time)}
-                        className={`px-4 py-2 rounded-lg border transition-colors ${
-                          formData.selectedTime === time
-                            ? 'bg-primary text-white border-primary'
-                            : 'border-gray-300 dark:border-gray-600 text-[#111418] dark:text-white hover:bg-gray-50 dark:hover:bg-gray-700'
-                        }`}
-                      >
-                        {time}
-                      </button>
-                    ))}
-                  </div>
+                ) : !formData.doctorId ? (
+                  <p className="text-[#617589] dark:text-gray-400 text-sm">Please select a doctor first</p>
+                ) : availableSlots.length === 0 ? (
+                  <p className="text-[#617589] dark:text-gray-400 text-sm">No slots available for this date</p>
                 ) : (
-                  <div className="grid grid-cols-3 gap-2">
-                    {allTimeSlots.map((time) => (
-                      <button
-                        key={time}
-                        onClick={() => handleTimeSelect(time)}
-                        className={`px-4 py-2 rounded-lg border transition-colors ${
-                          formData.selectedTime === time
-                            ? 'bg-primary text-white border-primary'
-                            : 'border-gray-300 dark:border-gray-600 text-[#111418] dark:text-white hover:bg-gray-50 dark:hover:bg-gray-700'
-                        }`}
-                      >
-                        {time}
-                      </button>
-                    ))}
+                  <div className="grid grid-cols-3 gap-2 max-h-64 overflow-y-auto">
+                    {availableSlots.map((slot) => {
+                      const time12h = formatTimeSlot(slot.time)
+                      const isSelected = formData.selectedTime === time12h
+                      const isBooked = slot.status === 'booked' || slot.status === 'BOOKED'
+                      const isAvailable = slot.status === 'available' || slot.status === 'AVAILABLE'
+                      
+                      return (
+                        <button
+                          key={slot.id}
+                          onClick={() => !isBooked && handleTimeSelect(time12h)}
+                          disabled={isBooked}
+                          className={`px-4 py-2 rounded-lg border transition-colors ${
+                            isBooked
+                              ? 'border-red-300 dark:border-red-600 bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-400 cursor-not-allowed opacity-75'
+                              : isSelected
+                              ? 'bg-primary text-white border-primary'
+                              : 'border-gray-300 dark:border-gray-600 text-[#111418] dark:text-white hover:bg-gray-50 dark:hover:bg-gray-700'
+                          }`}
+                          title={isBooked ? 'এই slot ইতিমধ্যে booked' : ''}
+                        >
+                          {time12h}
+                        </button>
+                      )
+                    })}
                   </div>
                 )}
               </div>
