@@ -129,9 +129,8 @@ export default function NewAppointmentPage() {
       if (response.success && response.data) {
         const daySlots = response.data.find((slotGroup: any) => slotGroup.date === dateStr)
         if (daySlots) {
-          // Filter available slots (status === 'available')
-          const available = daySlots.slots.filter((slot: any) => slot.status === 'available' || slot.status === 'AVAILABLE')
-          setAvailableSlots(available)
+          // Show ALL slots (both available and booked) - don't filter
+          setAvailableSlots(daySlots.slots)
         } else {
           setAvailableSlots([])
         }
@@ -725,16 +724,23 @@ export default function NewAppointmentPage() {
                           {availableSlots.map((slot) => {
                             const time12h = formatTimeSlot(slot.time)
                             const isSelected = formData.selectedTime === time12h
+                            const isBooked = slot.status === 'booked' || slot.status === 'BOOKED'
+                            const isAvailable = slot.status === 'available' || slot.status === 'AVAILABLE'
+                            
                             return (
                               <button
                                 key={slot.id}
                                 type="button"
-                                onClick={() => handleTimeSelect(time12h)}
+                                onClick={() => !isBooked && handleTimeSelect(time12h)}
+                                disabled={isBooked}
                                 className={`px-1.5 py-1 md:px-2 md:py-1.5 text-[10px] sm:text-xs rounded border transition-colors font-medium ${
-                                  isSelected
+                                  isBooked
+                                    ? 'border-red-300 dark:border-red-600 bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-400 cursor-not-allowed opacity-75'
+                                    : isSelected
                                     ? 'border-primary bg-primary text-white dark:bg-primary dark:text-white shadow-sm'
                                     : 'border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-300 hover:bg-primary/10 dark:hover:bg-primary/20 hover:border-primary'
                                 }`}
+                                title={isBooked ? 'এই slot ইতিমধ্যে booked' : ''}
                               >
                                 {time12h}
                               </button>
