@@ -15,8 +15,22 @@ interface Patient {
   email?: string
 }
 
+// Format date to YYYY-MM-DD in local timezone (helper function)
+const formatDateLocal = (date: Date) => {
+  const year = date.getFullYear()
+  const month = String(date.getMonth() + 1).padStart(2, '0')
+  const day = String(date.getDate()).padStart(2, '0')
+  return `${year}-${month}-${day}`
+}
+
 export default function NewAppointmentPage() {
   const router = useRouter()
+  
+  // Initialize with current date
+  const initialToday = new Date()
+  initialToday.setHours(0, 0, 0, 0)
+  const todayDateStr = formatDateLocal(initialToday)
+  
   const [formData, setFormData] = useState({
     patientType: 'new' as 'new' | 'old',
     patientId: '',
@@ -26,7 +40,7 @@ export default function NewAppointmentPage() {
     age: '',
     gender: '',
     notes: '',
-    selectedDate: '',
+    selectedDate: todayDateStr, // Initialize with current date
     selectedTime: '',
     clinicId: '',
   })
@@ -170,14 +184,6 @@ export default function NewAppointmentPage() {
     }))
     setSearchQuery(patient.name)
     setPatients([])
-  }
-
-  // Format date to YYYY-MM-DD in local timezone (helper function)
-  const formatDateLocal = (date: Date) => {
-    const year = date.getFullYear()
-    const month = String(date.getMonth() + 1).padStart(2, '0')
-    const day = String(date.getDate()).padStart(2, '0')
-    return `${year}-${month}-${day}`
   }
 
   const handleDateSelect = (day: number) => {
